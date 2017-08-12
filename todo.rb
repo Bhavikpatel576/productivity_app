@@ -53,8 +53,6 @@ post "/lists" do
   end
 end
 
-#Edit a current list. Obtain the information from the request 
-#and edit the session data
 post "/edit/:id" do
   id = params[:id].to_i
   list_name = params[:list_name].strip
@@ -68,7 +66,6 @@ post "/edit/:id" do
     redirect "/lists"
   end
 end
-
 
 get "/lists/:id" do
   id = params[:id].to_i
