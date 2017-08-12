@@ -53,17 +53,17 @@ post "/lists" do
   end
 end
 
-post "/edit/:id" do
-  id = params[:id].to_i
+post "/lists/:id" do
   list_name = params[:list_name].strip
+  id = params[:id].to_i
   error = error_for_list_name(list_name)
   if error
     session[:error] = error
     erb :new_list, layout: :layout
   else
     session[:lists][id] = { name: list_name, todos: []}
-    session[:success] = "The list has been created"
-    redirect "/lists"
+    session[:success] = "The list has been updated"
+    redirect "/lists/#{id}"
   end
 end
 
@@ -75,10 +75,8 @@ get "/lists/:id" do
   erb :list, layout: :layout
 end
 
-get "/edit/:id" do
+get "/lists/:id/edit" do
   id = params[:id].to_i
-  @id = id
   @list = session[:lists][id]
-  params[:id]
   erb :edit, layout: :layout
 end

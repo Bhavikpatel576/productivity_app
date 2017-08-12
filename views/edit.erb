@@ -1,26 +1,15 @@
-<ul id="lists">
-	<li>
-		<h><%= @list[:name] %> </h>
-		<p><%= @list[:todos].size %> </p>
-	</a>
-	</li>
-</ul>
 
-<% content_for :header_links do %>
-<a href="/lists/new">New List</a>
-<%end%>
-
-<form action ="/edit/<%=@id%>" method="post">
+<form action ="/lists/<%=params[:id]%>" method="post">
 	<dl>
 		<dt>
 			<label for="list_name">Edit your current list:</label>
 		</dt>
 		<dd>
-			<input name="list_name" placeholder="List Name" type="text" value="">
+			<input name="list_name" placeholder="List Name" type="text" value="<%= params[:list_name] ||@list[:name]%>">
 		</dd>
 	</dl>
 	<fieldset class="actions">
 		<input type="submit" values="Save">
-		<a href= "/lists">Cancel</a>
+		<a href= "/lists/<%=params[:id]%>">Cancel</a>
 	</fieldset>
 </form>
