@@ -1,0 +1,13 @@
+<section id="todos">
+	<header>
+		<h2><%= @list[:name] %></h2>
+		<ul>
+			<li><a class="edit" href='/edit/<%=@id%>'>Edit</a></li>
+		</ul>
+	</header>
+</section>
+
+
+<% content_for :header_links do %>
+<a href="/lists"> All List </a>
+<%end%>
