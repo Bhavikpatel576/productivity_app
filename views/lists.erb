@@ -1,16 +1,14 @@
-
 <ul id="lists">
-<% @lists.each_with_index do |list, index| %>
-	<li>
-	<a href="/lists/<%=index%>">
-		<h><%= list[:name] %> </h>
-		<p><%= list[:todos].size %> </p>
-	</a>
-	</li>
-	<%end%>
+  <% @lists.each_with_index do |list, index| %>
+    <li>
+      <a href="/lists/<%= index %>">
+        <h><%= list[:name] %> </h>
+        <p><%= list[:todos].size %> </p>
+      </a>
+    </li>
+  <% end %>
 </ul>
 
 <% content_for :header_links do %>
-<a href="/lists/new">New List</a>
-<%end%>
-
+  <a href="/lists/new">New List</a>
+<% end %>
