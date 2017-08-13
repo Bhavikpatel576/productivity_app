@@ -2,19 +2,19 @@
 	<header>
 		<h2><%= @list[:name] %></h2>
 		<ul>
-			<li><a class="edit" href="/lists/<%= params[:id] %>/edit"'>Edit List</a></li>
+			<li><a class="edit" href="/lists/<%= params[:id] %>/edit">Edit List</a></li>
 		</ul>
 	</header>
-	
+
 	<ul>
 	<h3>Todos</h3>
 		<% @list[:todos].each_with_index do |todo, index| %>
 			<li>
-				<h4><%=todo[:name]%></h4>
+				<h4><%= todo[:name] %></h4>
 			</li>
-		<%end%>
+		<% end %>
 	</ul>
-	
+
 </section>
 
 <form action ="/lists/<%= @list_id %>/todos" method="post">
@@ -23,7 +23,7 @@
 			<label for="todo">Enter todos:</label>
 		</dt>
 		<dd>
-			<input name="todo" placeholder="List Name" type="text" value="">
+			<input name="todo" placeholder="Todo Name" type="text" value="">
 		</dd>
 	</dl>
 	<fieldset class="actions">
@@ -34,5 +34,5 @@
 
 
 <% content_for :header_links do %>
-<a href="/lists"> All List </a>
-<%end%>
+	<a href="/lists">All List</a>
+<% end %>
