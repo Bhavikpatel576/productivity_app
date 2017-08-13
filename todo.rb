@@ -30,6 +30,19 @@ get "/lists/new" do
   erb :new_list, layout: :layout
 end
 
+get "/lists/:id" do
+  @list_id = params[:id].to_i
+  @list = session[:lists][@list_id]
+  params[:id]
+  erb :list, layout: :layout
+end
+
+get "/lists/:id/edit" do
+  id = params[:id].to_i
+  @list = session[:lists][id]
+  erb :edit, layout: :layout
+end
+
 def error_for_list_name(name)
   if !name.size.between?(1,100)
     "The list name must be between 1 and 100 characaters"
@@ -37,8 +50,13 @@ def error_for_list_name(name)
     "list name must be unique"
   end
 end
-    
 
+def error_for_todo(name)
+  if !name.size.between?(1,100)
+    "The list name must be between 1 and 100 characaters"
+  end
+end
+    
 #Create a new list
 post "/lists" do 
   list_name = params[:list_name].strip
@@ -67,16 +85,24 @@ post "/lists/:id" do
   end
 end
 
-get "/lists/:id" do
+post "/lists/:id/delete" do 
   id = params[:id].to_i
-  @id = id
-  @list = session[:lists][id]
-  params[:id]
-  erb :list, layout: :layout
+  session[:lists].delete_at(id)
+  session[:success] = "The list had been deleted."
+  redirect "/lists"
 end
 
-get "/lists/:id/edit" do
-  id = params[:id].to_i
-  @list = session[:lists][id]
-  erb :edit, layout: :layout
+post "/lists/:list_id/todos" do 
+  @list_id = params[:list_id].to_i
+  @list = session[:lists][@list_id]
+  text = params[:todo].strip
+  error = error_for_todo(text)
+  if error
+    session[:error] = error
+    erb :list, layout: :layout
+  else
+    @list[:todos] << {name: text, complete:false}
+    session[:success] = "The item has been added."
+    redirect "/lists/#{@list_id}"
+  end
 end
