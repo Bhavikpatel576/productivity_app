@@ -1,8 +1,7 @@
 require "sinatra"
-require "sinatra/reloader"
+require "sinatra/reloader" if development?
 require "tilt/erubis"
 require "sinatra/content_for"
-require "pry"
 
 #activate sessions in sinatra
 #secret verifys the data in the session
