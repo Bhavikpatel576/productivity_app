@@ -3,7 +3,7 @@
 		<h2 class="delete">Editing "<%= @list[:name] %>"</h2>
 		<ul>
 			<li>
-				<form action="/lists/<%=params[:id]%>/delete" method="post">
+				<form action="/lists/<%=params[:id] %>/delete" method="post">
 					<button type="submit" class="delete">Delete List</button>
 				</form>
 			</li>
@@ -11,7 +11,7 @@
 	</header>
 </section>
 
-<form action ="/lists/<%=params[:id]%>" method="post">
+<form action ="/lists/<%= params[:id] %>" method="post">
 	<dl>
 		<dt>
 			<label for="list_name">Enter new name for list:</label>

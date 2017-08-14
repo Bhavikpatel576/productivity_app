@@ -2,6 +2,7 @@ require "sinatra"
 require "sinatra/reloader"
 require "tilt/erubis"
 require "sinatra/content_for"
+require "pry"
 
 #activate sessions in sinatra
 #secret verifys the data in the session
@@ -13,6 +14,38 @@ end
 
 before do 
   session[:lists] ||= []
+end
+
+helpers do 
+  def list_complete?(list)
+    list_size(list) > 0 && list_remaining(list) == 0
+  end
+
+  def list_class(list)
+    'complete' if list_complete?(list)
+  end
+
+  def list_size(list)
+    list[:todos].size
+  end
+
+  def list_remaining(list)
+    list[:todos].select { |item| !item[:completed] }.size
+  end
+
+  def sort_lists(lists, &block)
+    completed_list, incompleted_list = lists. partition { |list| list_complete?(list) }
+
+    incompleted_list.each { |list| yield list, lists.index(list)}
+    completed_list.each { |list| yield list, lists.index(list)}
+  end
+
+  def sort_todos(todos, &block)
+    completed_todos, incompleted_todos = todos.partition { |todo| todo[:completed] }
+
+    incompleted_todos.each { |todo| yield todo, todos.index(todo)}
+    completed_todos.each { |todo| yield todo, todos.index(todo)}
+  end
 end
 
 get "/" do
@@ -92,7 +125,7 @@ post "/lists/:id/delete" do
   redirect "/lists"
 end
 
-post "/lists/:list_id/todos" do 
+post "/lists/:list_id/todos" do
   @list_id = params[:list_id].to_i
   @list = session[:lists][@list_id]
   text = params[:todo].strip
@@ -106,3 +139,44 @@ post "/lists/:list_id/todos" do
     redirect "/lists/#{@list_id}"
   end
 end
+
+post "/lists/:list_id/todos/:id/destroy" do 
+  @list_id = params[:list_id].to_i
+  @list = session[:lists][@list_id]
+  todo_id = params[:id].to_i
+  @list[:todos].delete_at todo_id
+  session[:success] = "The todo has been deleted"
+  redirect "/lists/#{@list_id}"
+end
+
+post "/lists/:list_id/todos/:id" do
+  @list_id = params[:list_id].to_i
+  @list = session[:lists][@list_id]
+
+  todo_id = params[:id].to_i
+  is_completed = params[:completed] == "true"
+  @list[:todos][todo_id][:completed] = is_completed
+  session[:success] = "The todo has been completed"
+  redirect "/lists/#{@list_id}"
+end
+
+# Mark all todos as complete for a list
+post "/lists/:id/complete_all" do
+  @list_id = params[:id].to_i
+  @list = session[:lists][@list_id]
+
+  @list[:todos].each do |todo_id|
+    todo_id[:completed] = true
+  end
+
+  session[:success] = "The todos have all been completed!!!"
+  redirect "/lists/#{@list_id}"
+end
+
+
+
+
+
+
+
+
