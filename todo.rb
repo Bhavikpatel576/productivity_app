@@ -9,6 +9,7 @@ require "sinatra/content_for"
 configure do 
   enable :sessions
   set :session_secret, 'secret'
+  set :erb, :escape_html => true
 end
 
 before do 
@@ -21,7 +22,7 @@ helpers do
   end
 
   def list_class(list)
-    'complete' if list_complete?(list)
+    list_complete?(list) ? 'complete' : ''
   end
 
   def list_size(list)
@@ -47,8 +48,32 @@ helpers do
   end
 end
 
+HOMEPAGE = "/lists"
+
+def error_for_list_name(name)
+  if !name.size.between?(1,100)
+    "The list name must be between 1 and 100 characaters"
+  elsif session[:lists].any? { |list| list[:name] == name }
+    "list name must be unique"
+  end
+end
+
+def error_for_todo(name)
+  if !name.size.between?(1,100)
+    "The list name must be between 1 and 100 characaters"
+  end
+end
+
+def load_list(index)
+  list = session[:lists][index] if index && session[:lists][index]
+  return list if list
+
+  session[:error] = "The specified list was not found"
+  redirect "/list"
+end
+
 get "/" do
-  redirect "/lists"
+  redirect HOMEPAGE
 end
 
 #View list of lists
@@ -64,29 +89,15 @@ end
 
 get "/lists/:id" do
   @list_id = params[:id].to_i
-  @list = session[:lists][@list_id]
+  @list = load_list(@list_id)
   params[:id]
   erb :list, layout: :layout
 end
 
 get "/lists/:id/edit" do
   id = params[:id].to_i
-  @list = session[:lists][id]
+  @list = load_list(@list_id)
   erb :edit, layout: :layout
-end
-
-def error_for_list_name(name)
-  if !name.size.between?(1,100)
-    "The list name must be between 1 and 100 characaters"
-  elsif session[:lists].any? { |list| list[:name] == name }
-    "list name must be unique"
-  end
-end
-
-def error_for_todo(name)
-  if !name.size.between?(1,100)
-    "The list name must be between 1 and 100 characaters"
-  end
 end
     
 #Create a new list
@@ -99,19 +110,21 @@ post "/lists" do
   else
     session[:lists] << { name: list_name, todos: []}
     session[:success] = "The list has been created"
-    redirect "/lists"
+    redirect HOMEPAGE
   end
 end
 
 post "/lists/:id" do
   list_name = params[:list_name].strip
   id = params[:id].to_i
+  @list = load_list(id)
+
   error = error_for_list_name(list_name)
   if error
     session[:error] = error
     erb :new_list, layout: :layout
   else
-    session[:lists][id] = { name: list_name, todos: []}
+    @list = list_name
     session[:success] = "The list has been updated"
     redirect "/lists/#{id}"
   end
@@ -121,12 +134,12 @@ post "/lists/:id/delete" do
   id = params[:id].to_i
   session[:lists].delete_at(id)
   session[:success] = "The list had been deleted."
-  redirect "/lists"
+  redirect HOMEPAGE
 end
 
 post "/lists/:list_id/todos" do
   @list_id = params[:list_id].to_i
-  @list = session[:lists][@list_id]
+  @list = load_list(@list_id)
   text = params[:todo].strip
   error = error_for_todo(text)
   if error
@@ -141,7 +154,7 @@ end
 
 post "/lists/:list_id/todos/:id/destroy" do 
   @list_id = params[:list_id].to_i
-  @list = session[:lists][@list_id]
+  @list = load_list(@list_id)
   todo_id = params[:id].to_i
   @list[:todos].delete_at todo_id
   session[:success] = "The todo has been deleted"
@@ -150,7 +163,7 @@ end
 
 post "/lists/:list_id/todos/:id" do
   @list_id = params[:list_id].to_i
-  @list = session[:lists][@list_id]
+  @list = load_list(@list_id)
 
   todo_id = params[:id].to_i
   is_completed = params[:completed] == "true"
@@ -162,7 +175,7 @@ end
 # Mark all todos as complete for a list
 post "/lists/:id/complete_all" do
   @list_id = params[:id].to_i
-  @list = session[:lists][@list_id]
+  @list = load_list(@list_id)
 
   @list[:todos].each do |todo_id|
     todo_id[:completed] = true
@@ -171,11 +184,3 @@ post "/lists/:id/complete_all" do
   session[:success] = "The todos have all been completed!!!"
   redirect "/lists/#{@list_id}"
 end
-
-
-
-
-
-
-
-
