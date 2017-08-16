@@ -130,11 +130,16 @@ post "/lists/:id" do
   end
 end
 
+#Delete a todo list
 post "/lists/:id/delete" do 
   id = params[:id].to_i
   session[:lists].delete_at(id)
-  session[:success] = "The list had been deleted."
-  redirect HOMEPAGE
+  if env["HTTP_X_REQUESTED_WITH"] == "XMLHttpRequest" #Rack preprends the header with HTTP
+    "/lists"
+  else
+    session[:success] = "The list had been deleted."
+    redirect HOMEPAGE
+  end
 end
 
 post "/lists/:list_id/todos" do
@@ -153,6 +158,7 @@ post "/lists/:list_id/todos" do
   end
 end
 
+#Delete a todo from a list
 post "/lists/:list_id/todos/:id/destroy" do 
   @list_id = params[:list_id].to_i
   @list = load_list(@list_id)

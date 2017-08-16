@@ -14,7 +14,11 @@ $(function() {
 			});
 
 			request.done(function(data, textStatus, jqXHR){
-				form.parent("li").remove()
+				if (jqXHR.status === 204) {
+					form.parent("li").remove();
+				} else if (jqXHR.status === 200) {
+					document.location = data;
+				}
 			}); //excuted when correctly fired
 
 			// request.fail(function()) <-- should add this in production app
