@@ -95,8 +95,8 @@ get "/lists/:id" do
 end
 
 get "/lists/:id/edit" do
-  id = params[:id].to_i
-  @list = load_list(@list_id)
+  id  = params[:id].to_i
+  @list = load_list(id)
   erb :edit, layout: :layout
 end
     
@@ -141,6 +141,7 @@ post "/lists/:list_id/todos" do
   @list_id = params[:list_id].to_i
   @list = load_list(@list_id)
   text = params[:todo].strip
+
   error = error_for_todo(text)
   if error
     session[:error] = error
@@ -157,8 +158,12 @@ post "/lists/:list_id/todos/:id/destroy" do
   @list = load_list(@list_id)
   todo_id = params[:id].to_i
   @list[:todos].delete_at todo_id
-  session[:success] = "The todo has been deleted"
-  redirect "/lists/#{@list_id}"
+  if env["HTTP_X_REQUESTED_WITH"] == "XMLHttpRequest" #Rack preprends the header with HTTP
+    status 204
+  else
+    session[:success] = "The todo has been deleted"
+    redirect "/lists/#{@list_id}"
+  end
 end
 
 post "/lists/:list_id/todos/:id" do
