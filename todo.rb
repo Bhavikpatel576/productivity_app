@@ -1,10 +1,8 @@
 require "sinatra"
-require "sinatra/reloader" if development?
+require "sinatra/reloader"
 require "tilt/erubis"
 require "sinatra/content_for"
 require "pry"
-require_relative "session_persistance"
-
 
 #activate sessions in sinatra
 #secret verifys the data in the session
@@ -15,13 +13,19 @@ configure do
   set :erb, :escape_html => true
 end
 
+configure(:development) do
+  require_relative "database_persistance"
+  also_reload "database_persistance.rb"
+end
+
 before do
-  @storage = SessionPersistance.new(session)
+  @storage = DatabasePersistance.new(logger)
 end
 
 helpers do 
+  #error because list[:todos] is an object
   def list_size(list)
-    list[:todos].size
+    list[:todos].each.count
   end
 
   def list_complete?(list)
@@ -40,10 +44,6 @@ helpers do
   #divides the lists into completed items and incompleted items
   def sort_lists(lists, &block)
     completed_list, incompleted_list = lists.partition { |list| list_complete?(list) }
-
-    # incompleted_list.each { |list| yield list, lists.index(list)}
-    # completed_list.each { |list| yield list, lists.index(list)}
-    #why am I passing an explicit block to each of these items?
     incompleted_list.each(&block)
     completed_list.each(&block)
   end
@@ -59,8 +59,6 @@ end
 
 HOMEPAGE = "/lists"
 
-
-
 def load_list(id)
   list = @storage.find_list(id)
   return list if list
@@ -72,8 +70,8 @@ end
 def error_for_list_name(name)
   if !name.size.between?(1,100)
     "The list name must be between 1 and 100 characaters"
-  elsif @storage.all_list(name)
-    "list name must be unique"
+  elsif @storage.find_list_name(name)
+    "The list name must be unique"
   end
 end
 
@@ -90,7 +88,7 @@ end
 
 #View list of lists
 get "/lists" do
-  @lists = @storage.list
+  @lists = @storage.all_list
   erb :lists, layout: :layout
 end
 
@@ -100,9 +98,8 @@ get "/lists/new" do
 end
 
 get "/lists/:id" do
-  id = params[:id].to_i
-  @list = load_list(id)
-  @list_id = @list[:id]
+  @list_id = params[:id].to_i
+  @list = load_list(@list_id)
   erb :list, layout: :layout
 end
 
@@ -175,6 +172,7 @@ post "/lists/:list_id/todos/:id/destroy" do
   @list = load_list(@list_id)
 
   todo_id = params[:id].to_i
+  binding.pry
   @storage.delete_todo_from_list(todo_id, @list_id)
 
   if env["HTTP_X_REQUESTED_WITH"] == "XMLHttpRequest" #Rack preprends the header with HTTP
