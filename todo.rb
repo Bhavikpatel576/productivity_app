@@ -29,7 +29,7 @@ helpers do
   end
 
   def list_complete?(list)
-    list_size(list) > 0 && list_remaining(list) == 0
+    list[:todos_count] > 0 && list[:todos_remaining_count] == 0
   end
 
   def list_class(list)
@@ -100,6 +100,7 @@ end
 get "/lists/:id" do
   @list_id = params[:id].to_i
   @list = load_list(@list_id)
+  @todos = @storage.find_todos_for_list(@list_id)
   erb :list, layout: :layout
 end
 
@@ -172,7 +173,6 @@ post "/lists/:list_id/todos/:id/destroy" do
   @list = load_list(@list_id)
 
   todo_id = params[:id].to_i
-  binding.pry
   @storage.delete_todo_from_list(todo_id, @list_id)
 
   if env["HTTP_X_REQUESTED_WITH"] == "XMLHttpRequest" #Rack preprends the header with HTTP
